@@ -47,6 +47,31 @@ func main() {
 
 ---
 
+
+错误捕获
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.Get("httpsdf://httpbin.org")
+	// 捕获错误
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+	fmt.Println(resp.Resp)
+}
+```
+
+
+---
+
 响应结果绑定到 `结构体` 上
 ```go
 package main
