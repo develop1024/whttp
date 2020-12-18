@@ -21,12 +21,17 @@ type Response struct {
 }
 
 // 将响应的结果解析到结构体上
-func (resp Response) Parse(StructData interface{}) error {
+func (resp *Response) Parse(StructData interface{}) error {
 	err := json.Unmarshal(resp.Resp, StructData)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// 将响应结果转为string
+func (resp *Response) ToString() string {
+	return string(resp.Resp)
 }
 
 // Get请求
