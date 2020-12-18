@@ -70,6 +70,29 @@ func main() {
 ```
 
 
+返回结果转 string
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.Get("http://httpbin.org/get")
+	// 捕获错误
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp.ToString())
+}
+```
+
+
 ---
 
 响应结果绑定到 `结构体` 上
