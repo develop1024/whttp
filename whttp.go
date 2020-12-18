@@ -1,11 +1,12 @@
-package whttp
+package main
 
 import (
 	"encoding/json"
 	"io/ioutil"
-"net/http"
-"net/url"
-"strings"
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 )
 
 // 自定义参数map
@@ -61,7 +62,7 @@ func (r *Request) Get(URL string) *Response {
 }
 
 // 自定义Get请求
-func (r *Request) CustomGet(URL string, params CMap, headers CMap) *Response {
+func (r *Request) CustomGet(URL string, params CMap, headers ...CMap) *Response {
 	request, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		return &Response{
@@ -73,7 +74,7 @@ func (r *Request) CustomGet(URL string, params CMap, headers CMap) *Response {
 	// 设置请求参数
 	q := request.URL.Query()
 	for key, val := range params {
-		q.Add(key, val.(string))
+		q.Add(key, ToStrType(val))
 	}
 
 	// 构造请求参数赋值给请求url
@@ -84,8 +85,10 @@ func (r *Request) CustomGet(URL string, params CMap, headers CMap) *Response {
 	// 设置请求头
 	request.Header.Set("content-type", "application/x-www-form-urlencoded")
 
-	for key, val := range headers {
-		request.Header.Add(key, val.(string))
+	for _, hs := range headers {
+		for key, val := range hs {
+			request.Header.Add(key, ToStrType(val))
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(request)
@@ -138,11 +141,11 @@ func (r *Request) Post(URL string) *Response {
 }
 
 // 自定义Post请求
-func (r *Request) CustomPost(URL string, params CMap, headers CMap) *Response {
+func (r *Request) CustomPost(URL string, params CMap, headers ...CMap) *Response {
 
 	u := url.Values{}
 	for key, val := range params {
-		u.Add(key, val.(string))
+		u.Add(key, ToStrType(val))
 	}
 
 	payload := strings.NewReader(u.Encode())
@@ -156,8 +159,10 @@ func (r *Request) CustomPost(URL string, params CMap, headers CMap) *Response {
 
 	// 设置请求头
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	for key, val := range headers {
-		request.Header.Add(key, val.(string))
+	for _, hs := range headers {
+		for key, val := range hs {
+			request.Header.Add(key, ToStrType(val))
+		}
 	}
 
 	resp, err := http.DefaultClient.Do(request)
@@ -180,5 +185,121 @@ func (r *Request) CustomPost(URL string, params CMap, headers CMap) *Response {
 	return &Response{
 		Resp:  response,
 		Error: nil,
+	}
+}
+
+
+// 自定义Put请求
+func (r *Request) CustomPut(URL string, params CMap, headers ...CMap) *Response {
+
+	u := url.Values{}
+	for key, val := range params {
+		u.Add(key, ToStrType(val))
+	}
+
+	payload := strings.NewReader(u.Encode())
+	request, err := http.NewRequest("PUT", URL, payload)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	// 设置请求头
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, hs := range headers {
+		for key, val := range hs {
+			request.Header.Add(key, ToStrType(val))
+		}
+	}
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+	defer resp.Body.Close()
+
+	response, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
+}
+
+
+// 自定义Delete请求
+func (r *Request) CustomDelete(URL string, params CMap, headers ...CMap) *Response {
+
+	u := url.Values{}
+	for key, val := range params {
+		u.Add(key, ToStrType(val))
+	}
+
+	payload := strings.NewReader(u.Encode())
+	request, err := http.NewRequest("DELETE", URL, payload)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	// 设置请求头
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, hs := range headers {
+		for key, val := range hs {
+			request.Header.Add(key, ToStrType(val))
+		}
+	}
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+	defer resp.Body.Close()
+
+	response, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
+}
+
+// 类型转换为 string
+func ToStrType(v interface{}) string {
+	switch v.(type) {
+	case string:
+		return v.(string)
+	case int:
+		return strconv.Itoa(v.(int))
+	case float32:
+		return strconv.FormatFloat(float64(v.(float32)), 'f', 6, 64)
+	case float64:
+		return strconv.FormatFloat(v.(float64), 'f', 6, 64)
+	case bool:
+		return strconv.FormatBool(v.(bool))
+	default:
+		return v.(string)
 	}
 }
