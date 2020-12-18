@@ -1,7 +1,8 @@
 package whttp
 
 import (
-"io/ioutil"
+	"encoding/json"
+	"io/ioutil"
 "net/http"
 "net/url"
 "strings"
@@ -10,27 +11,58 @@ import (
 // 自定义参数map
 type CMap map[string]interface{}
 
+// 请求结构体
+type Request struct {}
+
+// 响应结构体
+type Response struct {
+	Resp []byte
+	Error error
+}
+
+// 将响应的结果解析到结构体上
+func (resp Response) Parse(StructData interface{}) error {
+	err := json.Unmarshal(resp.Resp, StructData)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Get请求
-func Get(URL string) (response []byte, err error) {
+func (r *Request) Get(URL string) *Response {
 	resp, err := http.Get(URL)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
-	response, err = ioutil.ReadAll(resp.Body)
+	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
+
 	defer resp.Body.Close()
 
-	return response, nil
+	return &Response{
+		Resp: response,
+		Error: err,
+	}
 }
 
 // 自定义Get请求
-func CustomGet(URL string, params CMap, headers CMap) (response []byte, err error) {
+func (r *Request) CustomGet(URL string, params CMap, headers CMap) *Response {
 	request, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
 	// 设置请求参数
@@ -53,38 +85,55 @@ func CustomGet(URL string, params CMap, headers CMap) (response []byte, err erro
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
-	response, err = ioutil.ReadAll(resp.Body)
+	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 	defer resp.Body.Close()
 
-	return response, nil
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
 }
-
 
 
 // Post请求
-func Post(URL string) (response []byte, err error) {
+func (r *Request) Post(URL string) *Response {
 	resp, err := http.Post(URL, "application/json", nil)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
-	response, err = ioutil.ReadAll(resp.Body)
+	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 	defer resp.Body.Close()
 
-	return response, nil
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
 }
 
 // 自定义Post请求
-func CustomPost(URL string, params CMap, headers CMap) (response []byte, err error) {
+func (r *Request) CustomPost(URL string, params CMap, headers CMap) *Response {
 
 	u := url.Values{}
 	for key, val := range params {
@@ -94,7 +143,10 @@ func CustomPost(URL string, params CMap, headers CMap) (response []byte, err err
 	payload := strings.NewReader(u.Encode())
 	request, err := http.NewRequest("POST", URL, payload)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
 	// 设置请求头
@@ -105,14 +157,23 @@ func CustomPost(URL string, params CMap, headers CMap) (response []byte, err err
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 	defer resp.Body.Close()
 
-	response, err = ioutil.ReadAll(resp.Body)
+	response, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
 	}
 
-	return response, nil
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
 }
