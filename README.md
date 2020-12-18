@@ -1,5 +1,7 @@
 # whttp
 
+[![Production Ready](https://img.shields.io/badge/production-ready-blue.svg)](https://github.com/develop1024/whttp)
+
 `whttp` 封装了原生的`http`包的请求方法，发送 `http` 请求更加简洁明了，可将得到返回值的字符串，也可将返回值绑定到结构体上。
 
 
