@@ -1,4 +1,4 @@
-package whttp
+package main
 
 import (
 	"encoding/json"
@@ -8,8 +8,12 @@ import (
 	"strconv"
 	"strings"
 )
-// 参数别名
+// GET参数别名
 type Params map[string]interface{}
+
+// Body参数别名
+type Data map[string]interface{}
+
 // 请求头别名
 type Headers map[string]interface{}
 
@@ -198,9 +202,9 @@ func (r *Request) PostRequest(URL string, v ...interface{}) *Response {
 			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
-
+		case Data:
 			// 添加 body 请求参数
-			for key, val := range item.(Params) {
+			for key, val := range item.(Data) {
 				u.Add(key, ToStrType(val))
 			}
 		case Headers:
@@ -266,9 +270,9 @@ func (r *Request) PutRequest(URL string, v ...interface{}) *Response {
 			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
-
+		case Data:
 			// 添加 body 请求参数
-			for key, val := range item.(Params) {
+			for key, val := range item.(Data) {
 				u.Add(key, ToStrType(val))
 			}
 		case Headers:
@@ -334,9 +338,9 @@ func (r *Request) DeleteRequest(URL string, v ...interface{}) *Response {
 			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
-
+		case Data:
 			// 添加 body 请求参数
-			for key, val := range item.(Params) {
+			for key, val := range item.(Data) {
 				u.Add(key, ToStrType(val))
 			}
 		case Headers:
@@ -402,9 +406,9 @@ func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
 			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
-
+		case Data:
 			// 添加 body 请求参数
-			for key, val := range item.(Params) {
+			for key, val := range item.(Data) {
 				u.Add(key, ToStrType(val))
 			}
 		case Headers:
@@ -470,9 +474,9 @@ func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *R
 			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
-
+		case Data:
 			// 添加 body 请求参数
-			for key, val := range item.(Params) {
+			for key, val := range item.(Data) {
 				u.Add(key, ToStrType(val))
 			}
 		case Headers:
