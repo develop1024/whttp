@@ -25,15 +25,17 @@ import (
 func main() {
 	request := whttp.Request{}
 	resp := request.Get("http://httpbin.org/get")
-
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	// 打印response输出string类型
 	fmt.Println(resp)
+	// 打印response输出string类型
 	fmt.Println(resp.ToString())
+	// 打印response输出[]byte类型
+	fmt.Println(resp.Resp)
 }
-
 ```
 ---
 
@@ -50,15 +52,17 @@ import (
 func main() {
 	request := whttp.Request{}
 	resp := request.Post("http://httpbin.org/post")
-
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	// 打印response输出string类型
 	fmt.Println(resp)
+	// 打印response输出string类型
 	fmt.Println(resp.ToString())
+	// 打印response输出[]byte类型
+	fmt.Println(resp.Resp)
 }
-
 ```
 
 ---
@@ -75,16 +79,18 @@ import (
 
 func main() {
 	request := whttp.Request{}
-	resp := request.CustomPut("http://httpbin.org/put", nil)
-
+	resp := request.PutRequest("http://httpbin.org/put")
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	// 打印response输出string类型
 	fmt.Println(resp)
+	// 打印response输出string类型
 	fmt.Println(resp.ToString())
+	// 打印response输出[]byte类型
+	fmt.Println(resp.Resp)
 }
-
 ```
 
 ---
@@ -100,14 +106,17 @@ import (
 
 func main() {
 	request := whttp.Request{}
-	resp := request.CustomDelete("http://httpbin.org/delete", nil)
-
+	resp := request.DeleteRequest("http://httpbin.org/delete")
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	// 打印response输出string类型
 	fmt.Println(resp)
+	// 打印response输出string类型
 	fmt.Println(resp.ToString())
+	// 打印response输出[]byte类型
+	fmt.Println(resp.Resp)
 }
 ```
 
@@ -124,19 +133,19 @@ import (
 
 func main() {
 	request := whttp.Request{}
-	resp := request.CustomPatch("http://httpbin.org/patch", nil)
-
+	resp := request.PatchRequest("http://httpbin.org/patch")
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	// 打印response输出string类型
 	fmt.Println(resp)
+	// 打印response输出string类型
 	fmt.Println(resp.ToString())
+	// 打印response输出[]byte类型
+	fmt.Println(resp.Resp)
 }
 ```
-
----
-
 
 ---
 
@@ -166,16 +175,20 @@ type Header struct {
 
 func main() {
 	request := whttp.Request{}
+	resp := request.Get("http://httpbin.org/get")
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
 
-	var entityResp Resp
-
-	err := request.Get("http://httpbin.org/get").Parse(&entityResp)
+	var data Resp
+	err := resp.Parse(&data)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(entityResp.Url)
-	fmt.Println(entityResp.Headers.Host)
+	fmt.Println(data.Headers.Host)
+	fmt.Println(data.Url)
+	fmt.Println(data.Origin)
 }
 
 ```
@@ -193,18 +206,17 @@ import (
 
 func main() {
 	request := whttp.Request{}
-
-	resp := request.CustomGet("http://httpbin.org/get", whttp.CMap{
-		"name": "wangahah",
+	resp := request.GetRequest("http://httpbin.org/get", whttp.Params{
+		"name": "wanghaha",
 		"age": 24,
-	}, whttp.CMap{
+	}, whttp.Headers{
 		"Content-Type": "application/json",
 	})
-
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
 	fmt.Println(resp)
+	fmt.Println(resp.ToString())
 }
 ```
