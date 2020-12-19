@@ -1,4 +1,4 @@
-package main
+package whttp
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 )
-// GET参数别名
+// URL参数别名
 type Params map[string]interface{}
 
 // Body参数别名
