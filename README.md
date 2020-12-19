@@ -205,11 +205,17 @@ import (
 )
 
 func main() {
+	// whttp.Params 里传入URL参数
+	// whttp.Data 里传入Body参数
 	request := whttp.Request{}
 	resp := request.GetRequest("http://httpbin.org/get", whttp.Params{
+		"limit": 100,
+	},
+	whttp.Data{
 		"name": "wanghaha",
 		"age": 24,
-	}, whttp.Headers{
+	},
+	whttp.Headers{
 		"Content-Type": "application/json",
 	})
 	if resp.Error != nil {
