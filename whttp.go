@@ -21,6 +21,10 @@ type Response struct {
 	Error error
 }
 
+func (resp *Response) String () string {
+	return resp.ToString()
+}
+
 // 将响应的结果解析到结构体上
 func (resp *Response) Parse(StructData interface{}) error {
 	err := json.Unmarshal(resp.Resp, StructData)
@@ -248,6 +252,54 @@ func (r *Request) CustomDelete(URL string, params CMap, headers ...CMap) *Respon
 
 	payload := strings.NewReader(u.Encode())
 	request, err := http.NewRequest("DELETE", URL, payload)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	// 设置请求头
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	for _, hs := range headers {
+		for key, val := range hs {
+			request.Header.Add(key, ToStrType(val))
+		}
+	}
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+	defer resp.Body.Close()
+
+	response, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
+}
+
+// 自定义PATCH请求
+func (r *Request) CustomPatch(URL string, params CMap, headers ...CMap) *Response {
+
+	u := url.Values{}
+	for key, val := range params {
+		u.Add(key, ToStrType(val))
+	}
+
+	payload := strings.NewReader(u.Encode())
+	request, err := http.NewRequest("PATCH", URL, payload)
 	if err != nil {
 		return &Response{
 			Resp:  nil,
