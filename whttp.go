@@ -2,7 +2,6 @@ package whttp
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -133,7 +132,6 @@ func (r *Request) GetRequest(URL string, v ...interface{}) *Response {
 			request.URL.RawQuery = q.Encode()
 
 			for key, child := range item.(Params) {
-				fmt.Println(key, child)
 				q.Add(key, ToStrType(child))
 			}
 		case Headers:
@@ -198,7 +196,6 @@ func (r *Request) PostRequest(URL string, v ...interface{}) *Response {
 			request.URL.RawQuery = q.Encode()
 
 			for key, child := range item.(Params) {
-				fmt.Println(key, child)
 				q.Add(key, ToStrType(child))
 			}
 
@@ -267,7 +264,6 @@ func (r *Request) PutRequest(URL string, v ...interface{}) *Response {
 			request.URL.RawQuery = q.Encode()
 
 			for key, child := range item.(Params) {
-				fmt.Println(key, child)
 				q.Add(key, ToStrType(child))
 			}
 
@@ -336,7 +332,6 @@ func (r *Request) DeleteRequest(URL string, v ...interface{}) *Response {
 			request.URL.RawQuery = q.Encode()
 
 			for key, child := range item.(Params) {
-				fmt.Println(key, child)
 				q.Add(key, ToStrType(child))
 			}
 
@@ -405,7 +400,74 @@ func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
 			request.URL.RawQuery = q.Encode()
 
 			for key, child := range item.(Params) {
-				fmt.Println(key, child)
+				q.Add(key, ToStrType(child))
+			}
+
+			// 添加 body 请求参数
+			for key, val := range item.(Params) {
+				u.Add(key, ToStrType(val))
+			}
+		case Headers:
+			// 设置请求头
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			for key, val := range item.(Headers) {
+				request.Header.Add(key, ToStrType(val))
+			}
+		default:
+
+		}
+	}
+
+	// 发送请求
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+	defer resp.Body.Close()
+
+	// 读取请求
+	response, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	return &Response{
+		Resp:  response,
+		Error: nil,
+	}
+}
+
+// 自定义请求支持自定义参数和请求头
+func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *Response {
+	u := url.Values{}
+	payload := strings.NewReader(u.Encode())
+	request, err := http.NewRequest(METHOD, URL, payload)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
+		}
+	}
+
+	for _, item := range v {
+		switch item.(type) {
+		case Params:
+			// 设置URL请求参数
+			q := request.URL.Query()
+			for key, val := range item.(Params) {
+				q.Add(key, ToStrType(val))
+			}
+
+			// 构造请求参数赋值给请求url
+			request.URL.RawQuery = q.Encode()
+
+			for key, child := range item.(Params) {
 				q.Add(key, ToStrType(child))
 			}
 
