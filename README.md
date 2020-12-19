@@ -11,66 +11,8 @@ go get github.com/develop1024/whttp
 ```
 
 #### 使用方法
-发送 `Get` 请求
+发送 `GET` 请求
 
-```go
-package main
-
-import (
-	"fmt"
-	"github.com/develop1024/whttp"
-)
-
-func main() {
-	request := whttp.Request{}
-	response := request.Get("http://httpbin.org/get").Resp
-	fmt.Printf("%s\n", response)
-}
-```
----
-
-发送 `Post` 请求
-```go
-package main
-
-import (
-	"fmt"
-	"github.com/develop1024/whttp"
-)
-
-func main() {
-	request := whttp.Request{}
-	response := request.Post("http://httpbin.org/post").Resp
-	fmt.Printf("%s\n", response)
-}
-```
-
----
-
-
-错误捕获
-```go
-package main
-
-import (
-	"fmt"
-	"github.com/develop1024/whttp"
-	"log"
-)
-
-func main() {
-	request := whttp.Request{}
-	resp := request.Get("httpsdf://httpbin.org")
-	// 捕获错误
-	if resp.Error != nil {
-		log.Fatal(resp.Error)
-	}
-	fmt.Println(resp.Resp)
-}
-```
-
-
-返回结果转 string
 ```go
 package main
 
@@ -83,14 +25,117 @@ import (
 func main() {
 	request := whttp.Request{}
 	resp := request.Get("http://httpbin.org/get")
-	// 捕获错误
+
 	if resp.Error != nil {
 		log.Fatal(resp.Error)
 	}
 
+	fmt.Println(resp)
+	fmt.Println(resp.ToString())
+}
+
+```
+---
+
+发送 `POST` 请求
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.Post("http://httpbin.org/post")
+
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp)
+	fmt.Println(resp.ToString())
+}
+
+```
+
+---
+
+发送 `PUT` 请求
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.CustomPut("http://httpbin.org/put", nil)
+
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp)
+	fmt.Println(resp.ToString())
+}
+
+```
+
+---
+发送 `DELETE` 请求
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.CustomDelete("http://httpbin.org/delete", nil)
+
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp)
 	fmt.Println(resp.ToString())
 }
 ```
+
+---
+发送 `PATCH` 请求
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.CustomPatch("http://httpbin.org/patch", nil)
+
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp)
+	fmt.Println(resp.ToString())
+}
+```
+
+---
 
 
 ---
@@ -121,16 +166,18 @@ type Header struct {
 
 func main() {
 	request := whttp.Request{}
-	var resp Resp
-	err := request.Get("http://httpbin.org/get").Parse(&resp)
+
+	var entityResp Resp
+
+	err := request.Get("http://httpbin.org/get").Parse(&entityResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(resp.Url)
-	fmt.Println(resp.Headers)
-	fmt.Println(resp.Origin)
+	fmt.Println(entityResp.Url)
+	fmt.Println(entityResp.Headers.Host)
 }
+
 ```
 ---
 
@@ -141,18 +188,23 @@ package main
 import (
 	"fmt"
 	"github.com/develop1024/whttp"
+	"log"
 )
 
 func main() {
 	request := whttp.Request{}
 
-	// 自定义请求参数和请求头
-	response := request.CustomGet("http://httpbin.org/get", whttp.CMap{
-		"name": "wanghaha",
-		"age": "24",
+	resp := request.CustomGet("http://httpbin.org/get", whttp.CMap{
+		"name": "wangahah",
+		"age": 24,
 	}, whttp.CMap{
 		"Content-Type": "application/json",
-	}).Resp
-	fmt.Printf("%s\n", response)
+	})
+
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	fmt.Println(resp)
 }
 ```
