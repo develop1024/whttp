@@ -49,7 +49,7 @@ func (resp *Response) ToString() string {
 }
 
 // 获取map类型的响应
-func (resp *Response) GetMapResponse(key string) gjson.Result {
+func (resp *Response) GetJsonToMap(key string) gjson.Result {
 	result := gjson.GetBytes(resp.Resp, key)
 	return result
 }
