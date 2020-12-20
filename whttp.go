@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 // URL参数别名
 type Params map[string]interface{}
@@ -16,6 +17,8 @@ type Data map[string]interface{}
 
 // 请求头别名
 type Headers map[string]interface{}
+
+type Cookies []http.Cookie
 
 // 请求结构体
 type Request struct {}
@@ -147,6 +150,14 @@ func (r *Request) GetRequest(URL string, v ...interface{}) *Response {
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
 			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
+			}
 		default:
 
 		}
@@ -212,6 +223,14 @@ func (r *Request) PostRequest(URL string, v ...interface{}) *Response {
 			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
+			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
 			}
 		default:
 
@@ -281,6 +300,14 @@ func (r *Request) PutRequest(URL string, v ...interface{}) *Response {
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
 			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
+			}
 		default:
 
 		}
@@ -348,6 +375,14 @@ func (r *Request) DeleteRequest(URL string, v ...interface{}) *Response {
 			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
+			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
 			}
 		default:
 
@@ -417,6 +452,14 @@ func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
 			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
+			}
 		default:
 
 		}
@@ -484,6 +527,14 @@ func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *R
 			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 			for key, val := range item.(Headers) {
 				request.Header.Add(key, ToStrType(val))
+			}
+		case time.Duration:
+			// 设置超时时间
+			http.DefaultClient.Timeout = item.(time.Duration)
+		case Cookies:
+			// 设置cookie
+			for _, cookie := range item.(Cookies) {
+				request.AddCookie(&cookie)
 			}
 		default:
 
