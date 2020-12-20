@@ -226,3 +226,54 @@ func main() {
 	fmt.Println(resp.ToString())
 }
 ```
+
+设置 `cookie` 
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+	"net/http"
+)
+
+func main() {
+	request := whttp.Request{}
+	cookies := whttp.Cookies {
+		http.Cookie {
+			Name: "name",
+			Value: "xxxx",
+		},
+	}
+	resp := request.GetRequest("http://httpbin.org/get", cookies)
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+	fmt.Println(resp)
+}
+```
+
+
+设置请求超时时间
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/develop1024/whttp"
+	"log"
+	"time"
+)
+
+func main() {
+	request := whttp.Request{}
+
+	resp := request.GetRequest("http://httpbin.org/get", time.Microsecond * 100)
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+	fmt.Println(resp)
+}
+
+```
