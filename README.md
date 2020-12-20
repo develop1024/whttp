@@ -277,3 +277,34 @@ func main() {
 }
 
 ```
+
+获取json格式的响应
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"github.com/develop1024/whttp"
+)
+
+func main() {
+	request := whttp.Request{}
+	resp := request.Get("http://httpbin.org/get")
+	if resp.Error != nil {
+		log.Fatal(resp.Error)
+	}
+
+	// 获取map格式的响应
+	result := resp.GetJsonToMap("origin2")
+	if !result.Exists() {
+		fmt.Println("不存在的key")
+	}
+
+	result = resp.GetJsonToMap("origin")
+	fmt.Println(result)
+
+	result = resp.GetJsonToMap("headers.Host")
+	fmt.Println(result)
+}
+```
