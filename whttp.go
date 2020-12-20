@@ -2,6 +2,7 @@ package whttp
 
 import (
 	"encoding/json"
+	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -45,6 +46,12 @@ func (resp *Response) Parse(StructData interface{}) error {
 // 将响应结果转为string
 func (resp *Response) ToString() string {
 	return string(resp.Resp)
+}
+
+// 获取map类型的响应
+func (resp *Response) GetMapResponse(key string) gjson.Result {
+	result := gjson.GetBytes(resp.Resp, key)
+	return result
 }
 
 // 普通GET请求
