@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 )
+
 // URL参数别名
 type Params map[string]interface{}
 
@@ -54,57 +55,6 @@ func (resp *Response) GetJsonToMap(key string) gjson.Result {
 	return result
 }
 
-// 普通GET请求
-func (r *Request) Get(URL string) *Response {
-	resp, err := http.Get(URL)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	defer resp.Body.Close()
-
-	return &Response{
-		Resp: response,
-		Error: err,
-	}
-}
-
-// 普通POST请求
-func (r *Request) Post(URL string) *Response {
-	resp, err := http.Post(URL, "application/json", nil)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
-}
-
 // 类型转换为 string
 func ToStrType(v interface{}) string {
 	switch v.(type) {
@@ -123,378 +73,39 @@ func ToStrType(v interface{}) string {
 	}
 }
 
+// 普通GET请求
+func (r *Request) Get(URL string) *Response {
+	return r.CustomRequest(URL, "GET")
+}
+
+// 普通POST请求
+func (r *Request) Post(URL string) *Response {
+	return r.CustomRequest(URL, "POST")
+}
+
 // GET请求支持自定义参数和请求头
 func (r *Request) GetRequest(URL string, v ...interface{}) *Response {
-	request, err := http.NewRequest("GET", URL, nil)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Headers:
-			// 添加请求头
-			request.Header.Add("cache-control", "no-cache")
-			// 设置请求头
-			request.Header.Set("content-type", "application/x-www-form-urlencoded")
-
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
+	return r.CustomRequest(URL, "GET", v...)
 }
 
 // POST请求支持自定义参数和请求头
 func (r *Request) PostRequest(URL string, v ...interface{}) *Response {
-	u := url.Values{}
-	payload := strings.NewReader(u.Encode())
-	request, err := http.NewRequest("POST", URL, payload)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置URL请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Data:
-			// 添加 body 请求参数
-			for key, val := range item.(Data) {
-				u.Add(key, ToStrType(val))
-			}
-		case Headers:
-			// 设置请求头
-			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	// 发送请求
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	// 读取请求
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
+	return r.CustomRequest(URL, "POST", v...)
 }
 
 // PUT请求支持自定义参数和请求头
 func (r *Request) PutRequest(URL string, v ...interface{}) *Response {
-	u := url.Values{}
-	payload := strings.NewReader(u.Encode())
-	request, err := http.NewRequest("PUT", URL, payload)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置URL请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Data:
-			// 添加 body 请求参数
-			for key, val := range item.(Data) {
-				u.Add(key, ToStrType(val))
-			}
-		case Headers:
-			// 设置请求头
-			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	// 发送请求
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	// 读取请求
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
+	return r.CustomRequest(URL, "PUT", v...)
 }
 
 // DELETE请求支持自定义参数和请求头
 func (r *Request) DeleteRequest(URL string, v ...interface{}) *Response {
-	u := url.Values{}
-	payload := strings.NewReader(u.Encode())
-	request, err := http.NewRequest("DELETE", URL, payload)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置URL请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Data:
-			// 添加 body 请求参数
-			for key, val := range item.(Data) {
-				u.Add(key, ToStrType(val))
-			}
-		case Headers:
-			// 设置请求头
-			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	// 发送请求
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	// 读取请求
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
+	return r.CustomRequest(URL, "DELETE", v...)
 }
 
 // PATCH请求支持自定义参数和请求头
 func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
-	u := url.Values{}
-	payload := strings.NewReader(u.Encode())
-	request, err := http.NewRequest("PATCH", URL, payload)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置URL请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Data:
-			// 添加 body 请求参数
-			for key, val := range item.(Data) {
-				u.Add(key, ToStrType(val))
-			}
-		case Headers:
-			// 设置请求头
-			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	// 发送请求
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-	defer resp.Body.Close()
-
-	// 读取请求
-	response, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
-
-	return &Response{
-		Resp:  response,
-		Error: nil,
-	}
+	return r.CustomRequest(URL, "PATCH", v...)
 }
 
 // 自定义请求支持自定义参数和请求头
