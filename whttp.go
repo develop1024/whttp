@@ -1,13 +1,13 @@
 package whttp
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/tidwall/gjson"
+	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -110,59 +110,52 @@ func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
 
 // 自定义请求支持自定义参数和请求头
 func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *Response {
-	u := url.Values{}
-	var request *http.Request
-
-	for _, item := range v {
-		switch item.(type) {
-		case Params:
-			// 设置URL请求参数
-			q := request.URL.Query()
-			for key, val := range item.(Params) {
-				q.Add(key, ToStrType(val))
-			}
-
-			// 构造请求参数赋值给请求url
-			request.URL.RawQuery = q.Encode()
-
-			for key, child := range item.(Params) {
-				q.Add(key, ToStrType(child))
-			}
-		case Data:
-			// 添加 body 请求参数
-			for key, val := range item.(Data) {
-				u.Add(key, ToStrType(val))
-			}
-		case Headers:
-			// 设置请求头
-			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-			for key, val := range item.(Headers) {
-				request.Header.Add(key, ToStrType(val))
-			}
-		case time.Duration:
-			// 设置超时时间
-			http.DefaultClient.Timeout = item.(time.Duration)
-		case Cookies:
-			// 设置cookie
-			for _, cookie := range item.(Cookies) {
-				request.AddCookie(&cookie)
-			}
-		default:
-
-		}
-	}
-
-	// 构建参数
-	payload := strings.NewReader(u.Encode())
-
-	// 数据重新赋值
-	request, err := http.NewRequest(METHOD, URL, payload)
+	var buf *bytes.Buffer
+	request, err := http.NewRequest(METHOD, URL, nil)
 	if err != nil {
 		return &Response{
 			Resp:  nil,
 			Error: err,
 		}
 	}
+
+	for _, item := range v {
+		switch item.(type) {
+			case Params:
+				// 设置URL请求参数
+				q := request.URL.Query()
+				for key, val := range item.(Params) {
+					q.Add(key, ToStrType(val))
+				}
+
+				// 构造请求参数赋值给请求url
+				request.URL.RawQuery = q.Encode()
+			case Data:
+				// 添加 body 请求参数
+				jsonStr, _ := json.Marshal(item.(Data))
+				buf = bytes.NewBuffer(jsonStr)
+			case Headers:
+				// 设置请求头
+				for key, val := range item.(Headers) {
+					request.Header.Add(key, ToStrType(val))
+				}
+			case time.Duration:
+				// 设置超时时间
+				http.DefaultClient.Timeout = item.(time.Duration)
+			case Cookies:
+				// 设置cookie
+				for _, cookie := range item.(Cookies) {
+					request.AddCookie(&cookie)
+				}
+		}
+	}
+
+	// 数据重新赋值
+	rc, ok := io.Reader(buf).(io.ReadCloser)
+	if !ok && buf != nil {
+		rc = ioutil.NopCloser(buf)
+	}
+	request.Body = rc
 
 	// 发送请求
 	resp, err := http.DefaultClient.Do(request)
