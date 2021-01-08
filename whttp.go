@@ -111,14 +111,7 @@ func (r *Request) PatchRequest(URL string, v ...interface{}) *Response {
 // 自定义请求支持自定义参数和请求头
 func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *Response {
 	u := url.Values{}
-	payload := strings.NewReader(u.Encode())
-	request, err := http.NewRequest(METHOD, URL, payload)
-	if err != nil {
-		return &Response{
-			Resp:  nil,
-			Error: err,
-		}
-	}
+	var request *http.Request
 
 	for _, item := range v {
 		switch item.(type) {
@@ -156,6 +149,18 @@ func (r *Request) CustomRequest(URL string, METHOD string,  v ...interface{}) *R
 			}
 		default:
 
+		}
+	}
+
+	// 构建参数
+	payload := strings.NewReader(u.Encode())
+
+	// 数据重新赋值
+	request, err := http.NewRequest(METHOD, URL, payload)
+	if err != nil {
+		return &Response{
+			Resp:  nil,
+			Error: err,
 		}
 	}
 
